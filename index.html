@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Flaco Chef: Tu Asistente de Cocina</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        montserrat: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        'chef-red': '#E53E3E', // Un rojo vibrante
+                        'chef-blue': '#63B3ED', // Un celeste claro
+                        'chef-white': '#F7FAFC', // Un blanco suave
+                        'chef-gray': '#CBD5E0', // Gris para bordes y texto secundario
+                        'dark-gray': '#4A5568', // Gris oscuro para texto general
+                        'chef-light-teal': '#66A5A3', // Teal claro para etiquetas y tiempo/porciones
+                        'chef-dark-teal': '#4A7B7A', // Teal oscuro para nombres de receta
+                        'daily-dish-bg': '#B2DFDB', // Un turquesa claro para el fondo
+                        'daily-dish-border': '#00897B', // Un turquesa más oscuro para bordes
+                        'food-bg-light': '#FDF3E6', // Fondo crema/melocotón muy claro para iconos de comida
+                        'dessert-bg-light': '#F0E6F7', // Fondo lavanda/rosa muy claro para iconos de postre
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo para el spinner de carga */
+        .spinner {
+            border-top-color: #3498db;
+            border-left-color: #3498db;
+            border-bottom-color: #3498db;
+            border-right-color: #f3f3f3;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Estilos para las pestañas de navegación principal */
+        .main-tab-button {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem; /* rounded-md */
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            color: #F7FAFC; /* chef-white */
+        }
+        .main-tab-button.active {
+            background-color: #A0D9B4; /* Un verde suave para la pestaña activa */
+            color: #4A5568; /* dark-gray */
+            border-color: #A0D9B4;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .main-tab-button:not(.active):hover {
+            background-color: #EF4444; /* red-500 */
+            color: #F7FAFC; /* chef-white */
+        }
+
+        /* Estilos para las pestañas de categoría dentro de Chef AI y Categorías de Recetas */
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .tab-button.active {
+            background-color: #63B3ED; /* chef-blue */
+            color: #F7FAFC; /* chef-white */
+            border-color: #63B3ED;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #E2E8F0; /* light gray */
+            color: #4A5568; /* dark gray */
+        }
+
+        /* Estilos para la tarjeta de receta */
+        .recipe-card {
+            background-color: #fff;
+            border-radius: 1rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            overflow: hidden;
+            border: 1px solid #CBD5E0; /* border-chef-gray */
+            margin-bottom: 1.5rem; /* mb-6 */
+            width: 100%; /* Asegura que la tarjeta ocupe el ancho completo del contenedor padre */
+            max-width: 600px; /* Limita el ancho máximo para mejor lectura */
+            display: flex;
+            flex-direction: column; /* Apila los elementos verticalmente */
+        }
+        .recipe-card-image-background {
+            width: 100%;
+            height: 200px; /* Altura fija para la imagen de fondo */
+            display: flex; /* Para centrar el SVG */
+            justify-content: center; /* Para centrar el SVG */
+            align-items: center; /* Para centrar el SVG */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .recipe-card-image-background img {
+            width: 80%; /* Ajustado para que el SVG ocupe más espacio */
+            height: 80%; /* Ajustado para que el SVG ocupe más espacio */
+            opacity: 0.9; /* Ligeramente más opaco */
+            color: #4A5568; /* Color del icono */
+            object-fit: contain; /* Asegura que el SVG se ajuste sin recortarse */
+        }
+        
+        /* Contenedor para el texto del encabezado de la receta (ahora debajo de la imagen) */
+        .recipe-header-content {
+            padding: 1.5rem; /* p-6 */
+            text-align: center; /* Centra el texto dentro de este contenedor */
+        }
+        .recipe-type-label { /* Estilo para el texto "RECETA PARA ALMUERZOS/CENAS" */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .recipe-name-title {
+            font-size: 2rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1rem;
+            text-align: center; /* Asegura que el título esté centrado */
+        }
+        .recipe-time-servings {
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Centrar verticalmente los iconos y texto */
+            gap: 2rem;
+            color: #66A5A3; /* chef-light-teal */
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border: 1px solid #CBD5E0; /* chef-gray para el borde */
+            border-radius: 0.5rem;
+            width: fit-content;
+            margin-left: auto; /* Centrar el bloque */
+            margin-right: auto; /* Centrar el bloque */
+            margin-bottom: 1.5rem; /* Espacio debajo de este elemento */
+        }
+        .recipe-time-servings svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            stroke: currentColor; /* Asegura que el color del trazo sea el del texto */
+            fill: none; /* Asegura que no tengan relleno */
+            margin-right: 0.5rem;
+        }
+        .recipe-section-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #4A5568; /* dark-gray */
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid #CBD5E0; /* chef-gray */
+            padding-bottom: 0.25rem;
+            text-align: left; /* Asegura que el título de sección esté a la izquierda */
+        }
+        .instruction-steps p {
+            margin-bottom: 0.8rem; /* Aumentado el espacio entre cada paso de instrucción */
+            line-height: 1.5; /* Mejorar legibilidad */
+            text-align: left; /* Asegura que las instrucciones estén a la izquierda */
+        }
+        .recipe-ingredients-list {
+            text-align: left; /* Alinea los ingredientes a la izquierda */
+            list-style-position: inside; /* Mueve los puntos de la lista dentro del padding */
+            padding-left: 1rem; /* Ajusta el padding para la lista de ingredientes */
+        }
+
+        /* Estilos específicos para la sección de Inicio con imagen de fondo */
+        #homeSection {
+            background-image: url('https://i.imgur.com/v54pyJg.png'); /* Nueva imagen de fondo para la sección de inicio */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #F7FAFC; /* Texto blanco sobre la imagen de fondo */
+            position: relative; /* Para el overlay */
+            overflow: hidden; /* Asegura que el overlay no se desborde */
+        }
+
+        #homeSection::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5); /* Overlay oscuro para mejorar la legibilidad del texto */
+            z-index: 1; /* Asegura que el overlay esté sobre la imagen pero debajo del contenido */
+        }
+
+        #homeSection > * { /* Asegura que el contenido esté sobre el overlay */
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Sombreado para el texto en la sección de inicio */
+        #homeSection h1,
+        #homeSection p {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra de texto para mejorar la legibilidad */
+        }
+
+        /* Estilos para la sección "Plato del día" */
+        #dailyDishSection {
+            background-color: #FFFFFF; /* Fondo blanco */
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 2px solid #daily-dish-border; /* Borde turquesa oscuro */
+            padding: 2.5rem; /* p-10 */
+            margin-top: 2rem; /* mt-8 */
+            width: 100%;
+            max-width: 1200px; /* Aumentar el ancho máximo para contener 3 tarjetas */
+            text-align: center;
+        }
+        #dailyDishSection h2 {
+            color: #00897B; /* daily-dish-border (turquesa oscuro) */
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Sombra ligera para el título */
+        }
+        #dailyDishContent .recipe-name-title { /* Reutiliza el estilo del nombre de receta */
+            color: #4A7B7A; /* chef-dark-teal */
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        #dailyDishContent .recipe-type-label { /* Reutiliza el estilo de etiqueta */
+            color: #66A5A3; /* chef-light-teal */
+            margin-bottom: 0.5rem;
+        }
+        #dailyDishContent .recipe-time-servings {
+            justify-content: center;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        #dailyDishContent .recipe-section-title {
+            color: #4A5568; /* dark-gray */
+            border-bottom-color: #CBD5E0;
+        }
+        #dailyDishContent ul,
+        #dailyDishContent .instruction-steps {
+            text-align: left;
+            color: #4A5568; /* dark-gray */
+        }
+        #dailyDishContent .daily-dish-image {
+            width: 100%;
+            height: 250px; /* Altura fija para la imagen del plato del día */
+            object-fit: cover;
+            border-radius: 0.75rem; /* rounded-lg */
+            margin-bottom: 1.5rem;
+            border: 1px solid #daily-dish-border; /* Borde turquesa oscuro */
+        }
+
+        /* Estilos para la sección "Categorías de Recetas" */
+        #recipeCategoriesSection {
+            background-color: #FFFFFF; /* Fondo blanco */
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 2px solid #chef-light-teal; /* Borde turquesa claro */
+            padding: 2.5rem; /* p-10 */
+            margin-top: 2rem; /* mt-8 */
+            width: 100%;
+            max-width: 1200px; /* Aumentar el ancho máximo para contener 3 tarjetas */
+            text-align: center;
+        }
+        #recipeCategoriesSection h2 {
+            color: #4A5568; /* Usar dark-gray para mayor visibilidad */
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700; /* font-bold */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Sombra ligera para el título */
+        }
+
+        /* Estilos para el contenedor de video de YouTube */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio (para videos de YouTube) */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            background: #000;
+            border-radius: 0.75rem; /* rounded-lg */
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="font-montserrat bg-dark-gray text-chef-white flex flex-col min-h-screen">
+
+    <nav class="bg-chef-red p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" id="homeNavButton" class="text-chef-white text-2xl font-bold rounded-md p-2 hover:bg-red-700 transition-colors">El Flaco Chef</a>
+            <div class="space-x-4 flex items-center"> <!-- Added flex and items-center for alignment -->
+                <!-- Botón de WhatsApp -->
+                <a href="https://wa.me/5493415028812" target="_blank" class="text-chef-white text-2xl p-2 rounded-md hover:bg-green-600 transition-colors" aria-label="WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <button id="homeTab" class="main-tab-button active">Inicio</button>
+                <button id="chefAITab" class="main-tab-button">Chef AI</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center">
+        
+        <section id="homeSection" class="w-full max-w-4xl text-center py-12 px-6 rounded-xl shadow-xl border border-chef-gray">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-chef-white mb-6">Bienvenido a El Flaco Chef</h1>
+            <p class="text-lg text-chef-white mb-8">
+                Tu asistente de cocina personal, diseñado para ayudarte a crear deliciosas recetas con los ingredientes que ya tienes en casa.
+            </p>
+            <p class="text-md text-chef-white mb-8">
+                Explora nuevas ideas culinarias, reduce el desperdicio de alimentos y sorprende a tu familia con platos únicos.
+            </p>
+            <button id="goToChefAIButton" class="bg-chef-blue text-chef-white text-xl font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-500 transition-all duration-300 transform hover:scale-105">
+                Ir a Chef AI
+            </button>
+        </section>
+
+        <section id="dailyDishSection" class="hidden">
+            <h2 class="mb-6">Plato del Día</h2>
+            <div id="dailyDishLoading" class="flex justify-center items-center h-40">
+                <div class="spinner rounded-full h-16 w-16 border-4"></div>
+            </div>
+            <div id="dailyDishContent" class="flex flex-wrap justify-center gap-6 hidden">
+                </div>
+            <div id="dailyDishError" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden" role="alert">
+                <p class="font-bold">Error al cargar el plato del día:</p>
+                <p id="dailyDishErrorDetails"></p>
+            </div>
+        </section>
+
+        <section id="recipeCategoriesSection" class="hidden">
+            <h2 class="mb-6">Categorías de Recetas</h2>
+            <div class="flex space-x-4 mb-6 justify-center">
+                <button id="categoryTabAlmuerzo" class="tab-button active">Almuerzo</button>
+                <button id="categoryTabMerienda" class="tab-button">Merienda</button>
+                <button id="categoryTabCena" class="tab-button">Cena</button>
+                <button id="categoryTabPostre" class="tab-button">Postre</button>
+            </div>
+
+            <div id="almuerzoContent" class="category-content flex flex-wrap justify-center gap-6 hidden">
+                <div id="almuerzoLoading" class="flex justify-center items-center h-40 w-full hidden">
+                    <div class="spinner rounded-full h-16 w-16 border-4"></div>
+                </div>
+                <div id="almuerzoError" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden w-full" role="alert">
+                    <p class="font-bold">Error al cargar recetas de Almuerzo:</p>
+                    <p id="almuerzoErrorDetails"></p>
+                </div>
+            </div>
+            <div id="meriendaContent" class="category-content flex flex-wrap justify-center gap-6 hidden">
+                <div id="meriendaLoading" class="flex justify-center items-center h-40 w-full hidden">
+                    <div class="spinner rounded-full h-16 w-16 border-4"></div>
+                </div>
+                <div id="meriendaError" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden w-full" role="alert">
+                    <p class="font-bold">Error al cargar recetas de Merienda:</p>
+                    <p id="meriendaErrorDetails"></p>
+                </div>
+            </div>
+            <div id="cenaContent" class="category-content flex flex-wrap justify-center gap-6 hidden">
+                <div id="cenaLoading" class="flex justify-center items-center h-40 w-full hidden">
+                    <div class="spinner rounded-full h-16 w-16 border-4"></div>
+                </div>
+                <div id="cenaError" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden w-full" role="alert">
+                    <p class="font-bold">Error al cargar recetas de Cena:</p>
+                    <p id="cenaErrorDetails"></p>
+                </div>
+            </div>
+            <div id="postreContent" class="category-content flex flex-wrap justify-center gap-6 hidden">
+                <div id="postreLoading" class="flex justify-center items-center h-40 w-full hidden">
+                    <div class="spinner rounded-full h-16 w-16 border-4"></div>
+                </div>
+                <div id="postreError" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden w-full" role="alert">
+                    <p class="font-bold">Error al cargar recetas de Postre:</p>
+                    <p id="postreErrorDetails"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="chefAISection" class="w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 md:p-8 flex flex-col items-center border border-chef-gray hidden">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-chef-red mb-8 text-center">Pregúntale a Chef AI</h1>
+            
+            <div class="flex space-x-4 mb-6">
+                <button id="tabComida" class="tab-button active bg-chef-blue text-chef-white">Comida</button>
+                <button id="tabPostre" class="tab-button bg-chef-gray text-gray-800">Postre</button>
+            </div>
+
+            <textarea
+                id="userPrompt"
+                class="w-full p-4 border border-chef-gray rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-chef-blue resize-y min-h-[120px] text-lg"
+                placeholder="Ingresa los ingredientes que tienes en tu casa para brindarte una receta de comida: "
+            ></textarea>
+            
+            <button
+                id="askButton"
+                class="bg-chef-blue text-chef-white text-xl font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-500 transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+            >
+                <span id="buttonText">Preguntar a Chef AI</span>
+                <div id="loadingSpinner" class="spinner hidden rounded-full h-6 w-6 border-4 ml-3"></div>
+            </button>
+
+            <div id="responseArea" class="mt-8 w-full p-6 bg-chef-white border border-chef-gray rounded-lg shadow-inner hidden">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Respuesta de Chef AI:</h2>
+                <div id="aiResponseContent" class="text-gray-700"></div>
+            </div>
+            <div id="errorMessage" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden" role="alert">
+                <p class="font-bold">Error:</p>
+                <p id="errorDetails"></p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-chef-white py-8 text-center mt-auto">
+        <div class="container mx-auto px-4">
+            <p>&copy; 2025 El Flaco Chef: Sabores Nuestros. Todos los derechos reservados.</p>
+            <p class="text-sm mt-2">Hecho con pasión por la cocina y la tecnología.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userPrompt = document.getElementById('userPrompt');
+            const askButton = document.getElementById('askButton');
+            const buttonText = document.getElementById('buttonText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const responseArea = document.getElementById('responseArea');
+            const aiResponseContent = document.getElementById('aiResponseContent');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorDetails = document.getElementById('errorDetails');
+
+            const tabComida = document.getElementById('tabComida');
+            const tabPostre = document.getElementById('tabPostre');
+
+            const homeTab = document.getElementById('homeTab');
+            const chefAITab = document.getElementById('chefAITab');
+            const homeSection = document.getElementById('homeSection');
+            const chefAISection = document.getElementById('chefAISection');
+            const goToChefAIButton = document.getElementById('goToChefAIButton');
+            const homeNavButton = document.getElementById('homeNavButton');
+
+            // Elementos de la nueva sección "Plato del Día"
+            const dailyDishSection = document.getElementById('dailyDishSection');
+            const dailyDishLoading = document.getElementById('dailyDishLoading');
+            const dailyDishContent = document.getElementById('dailyDishContent');
+            const dailyDishError = document.getElementById('dailyDishError');
+            const dailyDishErrorDetails = document.getElementById('dailyDishErrorDetails');
+
+            // Elementos de la nueva sección "Categorías de Recetas"
+            const recipeCategoriesSection = document.getElementById('recipeCategoriesSection');
+            const categoryTabAlmuerzo = document.getElementById('categoryTabAlmuerzo');
+            const categoryTabMerienda = document.getElementById('categoryTabMerienda');
+            const categoryTabCena = document.getElementById('categoryTabCena');
+            const categoryTabPostre = document.getElementById('categoryTabPostre');
+
+            const almuerzoContent = document.getElementById('almuerzoContent');
+            const meriendaContent = document.getElementById('meriendaContent');
+            const cenaContent = document.getElementById('cenaContent');
+            const postreContent = document.getElementById('postreContent');
+
+            // Loading and error elements for categories
+            const almuerzoLoading = document.getElementById('almuerzoLoading');
+            const almuerzoError = document.getElementById('almuerzoError');
+            const almuerzoErrorDetails = document.getElementById('almuerzoErrorDetails');
+            const meriendaLoading = document.getElementById('meriendaLoading');
+            const meriendaError = document.getElementById('meriendaError');
+            const meriendaErrorDetails = document.getElementById('meriendaErrorDetails');
+            const cenaLoading = document.getElementById('cenaLoading');
+            const cenaError = document.getElementById('cenaError');
+            const cenaErrorDetails = document.getElementById('cenaErrorDetails');
+            const postreLoading = document.getElementById('postreLoading');
+            const postreError = document.getElementById('postreError');
+            const postreErrorDetails = document.getElementById('postreErrorDetails');
+
+
+            let activeCategory = 'comida'; // Categoría inicial para Chef AI
+            let activeSubCategory = 'almuerzo'; // Categoría inicial para Recetas Predefinidas
+
+            // SVG Icons as Data URLs
+            const foodSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bowl-food">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                    <path d="M8 12h8"/>
+                    <path d="M12 8v8"/>
+                    <path d="M12 2a10 10 0 0 0-8.9 5.07A10 10 0 0 1 12 22a10 10 0 0 0 8.9-5.07"/>
+                </svg>
+            `)}`;
+
+            const dessertSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cake">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <path d="M2 21h20"/>
+                    <path d="M7 7.07V5a1 1 0 0 1 1-1h.07c.57 0 1.13.2 1.56.58L10 6"/>
+                    <path d="M17 7.07V5a1 1 0 0 0-1-1h-.07c-.57 0-1.13.2-1.56.58L14 6"/>
+                    <path d="M17 17H7a3 3 0 0 1-3-3v-3a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3z"/>
+                </svg>
+            `)}`;
+
+            // New SVG for Daily Dish section - Pot cooking (improved)
+            const dailyDishSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(`
+                <svg width="100%" height="100%" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" style="background-color: #D0F8D2;">
+                    <path d="M40 40 Q30 10, 160 10 Q170 40, 160 110 H40 Z" fill="#A5D6A7" stroke="#66BB6A" stroke-width="3"/>
+                    <rect x="35" y="0" width="130" height="15" rx="5" fill="#B0BEC5"/>
+                    <circle cx="30" cy="50" r="12" fill="#78909C"/>
+                    <circle cx="170" cy="50" r="12" fill="#78909C"/>
+                    <rect x="50" y="25" width="100" height="70" fill="#81C784" rx="5"/>
+                    <path d="M70 20 Q85 0, 100 20 Q115 0, 130 20" stroke="#CFD8DC" stroke-width="5" fill="none" opacity="0.7" stroke-linecap="round"/>
+                    <path d="M80 35 Q95 15, 110 35 Q125 15, 140 35" stroke="#CFD8DC" stroke-width="4" fill="none" opacity="0.6" stroke-linecap="round"/>
+                </svg>
+            `)}`;
+
+
+            // Helper function to generate recipe HTML
+            function createRecipeCardHtml(recipe, categoryType, videoUrl) {
+                let rawInstructions = recipe.instructions;
+                // Asegurar que cada paso numerado comience en una nueva línea
+                rawInstructions = rawInstructions.replace(/(\d+\.\s)/g, '\n$1');
+                // Eliminar múltiples saltos de línea consecutivos y trim
+                rawInstructions = rawInstructions.replace(/\n\s*\n/g, '\n').trim();
+                
+                const instructionSteps = rawInstructions.split('\n').filter(step => step.trim() !== '');
+                let instructionsHtml = '';
+                instructionSteps.forEach(step => {
+                    if (step.trim() !== '') {
+                        instructionsHtml += `<p class="mb-2">${step.trim()}</p>`;
+                    }
+                });
+
+                let imageBackgroundStyle = '';
+                let imageContent = '';
+                let labelTextColorClass = 'text-dark-gray'; // Default to dark-gray for consistency
+                let titleTextColorClass = 'text-dark-gray'; // Default to dark-gray for consistency
+                let textShadowStyle = ''; // Default no text shadow
+
+                // Specific background for "Plato del Día" generated recipes
+                if (categoryType === 'daily-dish-generated') {
+                    imageBackgroundStyle = `background-color: #D0F8D2;`; // Light green background for SVG
+                    imageContent = `<img src="${dailyDishSvgDataUrl}" alt="Kitchen elements icon" class="w-full h-full mx-auto my-auto">`; // Use the new SVG
+                }
+                // Apply specific image for 'almuerzo' category (predefined or AI generated)
+                else if (categoryType === 'almuerzo') { 
+                    imageBackgroundStyle = `background-image: url('https://i.imgur.com/hoFERLz.png'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
+                }
+                // Specific image for 'merienda'
+                else if (categoryType === 'merienda') {
+                    imageBackgroundStyle = `background-image: url('https://i.imgur.com/Gveo3VI.png'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
+                    imageContent = ''; // No SVG needed as it's a background image
+                }
+                // Specific image for 'cena'
+                else if (categoryType === 'cena') { 
+                    imageBackgroundStyle = `background-image: url('https://i.imgur.com/7zztaMd.png'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
+                    imageContent = ''; // No additional SVG icon needed as the image is the background
+                    labelTextColorClass = 'text-chef-white'; // Set to white for readability
+                    titleTextColorClass = 'text-chef-white'; // Set to white for readability
+                    textShadowStyle = 'text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);'; // Add shadow for readability
+                }
+                // Specific image for 'postre'
+                else if (categoryType === 'postre') {
+                    imageBackgroundStyle = `background-image: url('https://i.imgur.com/BH8QrdS.png'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
+                    imageContent = ''; // No SVG needed as it's a background image
+                }
+                // Default fallback for other food categories if needed (e.g., 'comida' from Chef AI)
+                else { 
+                    imageBackgroundStyle = `background-color: ${tailwind.config.theme.extend.colors['chef-white']};`; // Use chef-white or food-bg-light
+                    imageContent = `<img src="${foodSvgDataUrl}" alt="${categoryType} icon" class="w-24 h-24 mx-auto my-auto" style="filter: invert(20%) sepia(10%) saturate(1000%) hue-rotate(200deg) brightness(80%) contrast(90%);">`; // Darken SVG if needed
+                }
+
+                return `
+                    <div class="recipe-card mb-8">
+                        <div class="recipe-card-image-background" style="${imageBackgroundStyle}">
+                            ${imageContent}
+                        </div>
+                        <div class="recipe-header-content">
+                            <p class="recipe-type-label ${labelTextColorClass}" style="${textShadowStyle}">${categoryType === 'daily-dish-generated' ? 'PLATO DEL DÍA' : categoryType.toUpperCase()}</p>
+                            <h3 class="recipe-name-title ${titleTextColorClass}" style="${textShadowStyle}">${recipe.recipeName}</h3>
+                            <div class="recipe-time-servings">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    <span>${recipe.prepTime || 'N/A'}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 3h7v7H3z"/>
+                                        <path d="M15 3h7v7h-7z"/>
+                                        <path d="M3 15h7v7H3z"/>
+                                        <path d="M15 15h7v7h-7z"/>
+                                    </svg>
+                                    <span>${recipe.servings || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recipe-card-content p-6">
+                            <p class="recipe-section-title">Ingredientes:</p>
+                            <ul class="list-disc text-gray-700 mb-4 recipe-ingredients-list">
+                                ${recipe.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                            </ul>
+                            <p class="recipe-section-title">Instrucciones:</p>
+                            <div class="text-gray-700 instruction-steps">
+                                ${instructionsHtml}
+                            </div>
+                            ${videoUrl ? `<div class="video-container"><iframe src="${videoUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Function to generate recipes for categories using AI
+            async function generateCategoryRecipes(categoryId, targetContent, loadingElement, errorElement, errorDetailsElement) {
+                targetContent.innerHTML = ''; // Clear previous content
+                errorElement.classList.add('hidden');
+
+                let promptText;
+                if (categoryId === 'almuerzo') {
+                    promptText = `Dame 3 recetas de almuerzo en español. Incluye 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos.`;
+                } else if (categoryId === 'merienda') {
+                    promptText = `Dame 3 recetas de merienda en español. Incluye 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos.`;
+                } else if (categoryId === 'cena') {
+                    promptText = `Dame 3 recetas de cena en español. Incluye 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos.`;
+                } else if (categoryId === 'postre') {
+                    promptText = `Dame 3 recetas de postre en español. Incluye 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos.`;
+                } else {
+                    showCategoryError(errorElement, errorDetailsElement, "Categoría no reconocida.");
+                    loadingElement.classList.add('hidden');
+                    return;
+                }
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "recipeName": { "type": "STRING" },
+                                    "ingredients": {
+                                        "type": "ARRAY",
+                                        "items": { "type": "STRING" }
+                                    },
+                                    "instructions": { "type": "STRING" },
+                                    "prepTime": { "type": "STRING" },
+                                    "servings": { "type": "STRING" }
+                                },
+                                "propertyOrdering": ["recipeName", "ingredients", "instructions", "prepTime", "servings"]
+                            }
+                        }
+                    }
+                };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error(`Error en la API de Gemini para ${categoryId}:`, errorData);
+                        throw new Error(`Error en la API: ${response.status} - ${errorData.error.message || 'Error desconocido'}`);
+                    }
+
+                    const result = await response.json();
+                    console.log(`Respuesta completa de Gemini para ${categoryId}:`, result);
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const json = result.candidates[0].content.parts[0].text;
+                        const jsonResponse = JSON.parse(json);
+                        
+                        if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+                            let htmlContent = '';
+                            jsonResponse.forEach(recipe => {
+                                htmlContent += createRecipeCardHtml(recipe, categoryId, null); // No video for AI generated
+                            });
+                            targetContent.innerHTML = htmlContent;
+                            targetContent.classList.remove('hidden'); // Mostrar el contenido
+                        } else {
+                            showCategoryError(errorElement, errorDetailsElement, `Chef AI no pudo generar recetas para ${categoryId}. Intenta de nuevo.`);
+                        }
+                    } else {
+                        showCategoryError(errorElement, errorDetailsElement, `No se pudo obtener una respuesta válida de Chef AI para ${categoryId}.`);
+                    }
+
+                } catch (error) {
+                    console.error(`Error al comunicarse con Chef AI para ${categoryId}:`, error);
+                    showCategoryError(errorElement, errorDetailsElement, `Hubo un problema al cargar recetas de ${categoryId}: ${error.message}.`);
+                } finally {
+                    loadingElement.classList.add('hidden'); // Ocultar el spinner
+                }
+            }
+
+
+            // Función para mostrar la sección activa (Inicio, Chef AI)
+            async function showSection(sectionId) {
+                homeSection.classList.add('hidden');
+                chefAISection.classList.add('hidden');
+                dailyDishSection.classList.add('hidden'); // Ocultar plato del día por defecto
+                recipeCategoriesSection.classList.add('hidden'); // Ocultar categorías por defecto
+
+                homeTab.classList.remove('active');
+                chefAITab.classList.remove('active');
+                homeTab.classList.remove('bg-chef-blue', 'text-chef-white');
+                chefAITab.classList.remove('bg-chef-blue', 'text-chef-white');
+                homeTab.classList.add('bg-chef-red', 'hover:bg-red-700');
+                chefAITab.classList.add('bg-chef-red', 'hover:bg-red-700');
+
+
+                if (sectionId === 'homeSection') {
+                    homeSection.classList.remove('hidden');
+                    homeTab.classList.add('active');
+                    homeTab.classList.remove('bg-chef-red', 'hover:bg-red-700');
+                    homeTab.classList.add('bg-chef-blue', 'text-chef-white');
+                    // Al mostrar la sección de inicio, también mostramos el plato del día y las categorías
+                    dailyDishSection.classList.remove('hidden');
+                    recipeCategoriesSection.classList.remove('hidden');
+                    await generateDailyDish(); // Generar el plato del día al ir a la sección de inicio
+                    showCategoryContent(activeSubCategory); // Asegurarse de que la subcategoría activa se muestre
+                } else if (sectionId === 'chefAISection') {
+                    chefAISection.classList.remove('hidden');
+                    chefAITab.classList.add('active');
+                    chefAITab.classList.remove('bg-chef-red', 'hover:bg-red-700');
+                    chefAITab.classList.add('bg-chef-blue', 'text-chef-white');
+                }
+            }
+
+            // Función para generar el "Plato del Día"
+            async function generateDailyDish() {
+                dailyDishLoading.classList.remove('hidden');
+                dailyDishContent.classList.add('hidden');
+                dailyDishError.classList.add('hidden');
+                dailyDishContent.innerHTML = ''; // Clear previous content
+
+                const promptText = `Dame 2 recetas de comida aleatoria en español. Incluye 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos.`;
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "recipeName": { "type": "STRING" },
+                                    "ingredients": {
+                                        "type": "ARRAY",
+                                        "items": { "type": "STRING" }
+                                    },
+                                    "instructions": { "type": "STRING" },
+                                    "prepTime": { "type": "STRING" },
+                                    "servings": { "type": "STRING" }
+                                },
+                                "propertyOrdering": ["recipeName", "ingredients", "instructions", "prepTime", "servings"]
+                            }
+                        }
+                    }
+                };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Error en la API de Gemini para Plato del Día:', errorData);
+                        throw new Error(`Error en la API: ${response.status} - ${errorData.error.message || 'Error desconocido'}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('Respuesta completa de Gemini para Plato del Día:', result);
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const json = result.candidates[0].content.parts[0].text;
+                        const jsonResponse = JSON.parse(json);
+                        
+                        if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+                            let htmlContent = '';
+                            jsonResponse.forEach(recipe => {
+                                htmlContent += createRecipeCardHtml(recipe, 'daily-dish-generated', null); // Use new category type
+                            });
+                            dailyDishContent.innerHTML = htmlContent;
+                            dailyDishContent.classList.remove('hidden');
+                        } else {
+                            showDailyDishError("Chef AI no pudo generar un plato del día. Intenta de nuevo.");
+                        }
+                    } else {
+                        showDailyDishError("No se pudo obtener una respuesta válida de Chef AI para el plato del día.");
+                    }
+
+                } catch (error) {
+                    console.error('Error al comunicarse con Chef AI para Plato del Día:', error);
+                    showDailyDishError(`Hubo un problema al cargar el plato del día: ${error.message}.`);
+                } finally {
+                    dailyDishLoading.classList.add('hidden');
+                }
+            }
+
+            // Función para mostrar el contenido de la subcategoría de recetas
+            async function showCategoryContent(categoryId) {
+                // Ocultar todos los contenidos y errores de categoría
+                // Asegurarse de que todas las secciones de contenido estén explícitamente ocultas *primero*
+                document.querySelectorAll('.category-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('[id$="Error"]').forEach(el => el.classList.add('hidden'));
+                
+                // Ocultar todos los spinners de carga de categoría (importante para reiniciar)
+                document.querySelectorAll('[id$="Loading"]').forEach(el => el.classList.add('hidden'));
+
+                // Quitar la clase 'active' y los estilos 'bg-chef-blue' de todos los botones de categoría
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.classList.remove('active', 'bg-chef-blue', 'text-chef-white');
+                    button.classList.add('bg-chef-gray', 'text-gray-800');
+                });
+
+                let targetContent;
+                let targetTab;
+                let targetLoading;
+                let targetError;
+                let targetErrorDetails;
+
+                switch (categoryId) {
+                    case 'almuerzo':
+                        targetContent = almuerzoContent;
+                        targetTab = categoryTabAlmuerzo;
+                        targetLoading = almuerzoLoading;
+                        targetError = almuerzoError;
+                        targetErrorDetails = almuerzoErrorDetails;
+                        break;
+                    case 'merienda':
+                        targetContent = meriendaContent;
+                        targetTab = categoryTabMerienda;
+                        targetLoading = meriendaLoading;
+                        targetError = meriendaError;
+                        targetErrorDetails = meriendaErrorDetails;
+                        break;
+                    case 'cena':
+                        targetContent = cenaContent;
+                        targetTab = categoryTabCena;
+                        targetLoading = cenaLoading;
+                        targetError = cenaError;
+                        targetErrorDetails = cenaErrorDetails;
+                        break;
+                    case 'postre':
+                        targetContent = postreContent;
+                        targetTab = categoryTabPostre;
+                        targetLoading = postreLoading;
+                        targetError = postreError;
+                        targetErrorDetails = postreErrorDetails;
+                        break;
+                }
+
+                // Asegurarse de que el contenido del objetivo esté oculto antes de mostrar el spinner
+                targetContent.classList.add('hidden'); 
+                // Mostrar el spinner de carga para la categoría seleccionada inmediatamente
+                targetLoading.classList.remove('hidden');
+
+                // Establecer la pestaña de categoría activa
+                targetTab.classList.add('active');
+                targetTab.classList.remove('bg-chef-gray', 'text-gray-800');
+                targetTab.classList.add('bg-chef-blue', 'text-chef-white');
+                activeSubCategory = categoryId;
+
+                console.log(`[${categoryId}] Spinner should be visible now.`);
+                
+                // *** RETRASO TEMPORAL PARA PRUEBAS - ELIMINAR ESTA LÍNEA EN PRODUCCIÓN ***
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Aumentado a 3 segundos para una visibilidad clara
+                // *******************************************************************
+
+                console.log(`[${categoryId}] Delay finished. Calling generateCategoryRecipes.`);
+
+                await generateCategoryRecipes(categoryId, targetContent, targetLoading, targetError, targetErrorDetails);
+                console.log(`[${categoryId}] generateCategoryRecipes finished. Spinner should be hidden.`);
+            }
+
+            // Event listeners para las pestañas de navegación principal
+            homeTab.addEventListener('click', () => showSection('homeSection'));
+            chefAITab.addEventListener('click', () => showSection('chefAISection'));
+            goToChefAIButton.addEventListener('click', () => showSection('chefAISection'));
+            homeNavButton.addEventListener('click', (event) => {
+                event.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
+                showSection('homeSection');
+            });
+
+            // Event listeners para los botones de pestaña de categoría de recetas
+            categoryTabAlmuerzo.addEventListener('click', () => showCategoryContent('almuerzo'));
+            categoryTabMerienda.addEventListener('click', () => showCategoryContent('merienda'));
+            categoryTabCena.addEventListener('click', () => showCategoryContent('cena'));
+            categoryTabPostre.addEventListener('click', () => showCategoryContent('postre'));
+
+
+            // Función para cambiar la categoría activa dentro de Chef AI
+            function setActiveCategory(category) {
+                activeCategory = category;
+                if (category === 'comida') {
+                    tabComida.classList.add('active');
+                    tabComida.classList.remove('bg-chef-gray', 'text-gray-800');
+                    tabComida.classList.add('bg-chef-blue', 'text-chef-white');
+
+                    tabPostre.classList.remove('active');
+                    tabPostre.classList.add('bg-chef-gray', 'text-gray-800');
+                    tabPostre.classList.remove('bg-chef-blue', 'text-chef-white');
+                    userPrompt.placeholder = "Ingresa los ingredientes que tienes en tu casa para brindarte una receta de comida: "; // Placeholder para Comida
+                } else {
+                    tabPostre.classList.add('active');
+                    tabPostre.classList.remove('bg-chef-gray', 'text-gray-800');
+                    tabPostre.classList.add('bg-chef-blue', 'text-chef-white');
+
+                    tabComida.classList.remove('active');
+                    tabComida.classList.add('bg-chef-gray', 'text-gray-800');
+                    tabComida.classList.remove('bg-chef-blue', 'text-chef-white');
+                    userPrompt.placeholder = "Ingresa los ingredientes que tienes en tu casa para brindarte la receta de algún postre: "; // Placeholder para Postre
+                }
+                // Limpiar el área de respuesta y error al cambiar de categoría
+                responseArea.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                aiResponseContent.innerHTML = '';
+                userPrompt.value = ''; // Limpiar el prompt al cambiar de categoría
+            }
+
+            // Event listeners para los botones de pestaña de categoría de Chef AI
+            tabComida.addEventListener('click', () => setActiveCategory('comida'));
+            tabPostre.addEventListener('click', () => setActiveCategory('postre'));
+
+            // Establecer la sección inicial al cargar la página y generar el plato del día
+            showSection('homeSection');
+            setActiveCategory('comida'); // También inicializar la categoría de Chef AI
+
+
+            askButton.addEventListener('click', async () => {
+                const ingredients = userPrompt.value.trim();
+
+                if (!ingredients) {
+                    showError("Por favor, escribe los ingredientes antes de enviar.");
+                    return;
+                }
+
+                // Ocultar mensajes de error previos
+                errorMessage.classList.add('hidden');
+                responseArea.classList.add('hidden');
+                aiResponseContent.innerHTML = ''; // Limpiar el contenido HTML
+
+                // Mostrar spinner y deshabilitar botón
+                buttonText.textContent = 'Pensando...';
+                loadingSpinner.classList.remove('hidden');
+                askButton.disabled = true;
+                askButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+                let promptText;
+                if (activeCategory === 'comida') {
+                    promptText = `Dame 2 o 3 recetas de platos de comida (almuerzo o cena) en español usando los siguientes ingredientes: ${ingredients}. Incluye 'prepTime' (ej. "30 minutos") y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos, donde cada objeto tenga 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string).`;
+                } else {
+                    promptText = `Dame 3 o más recetas de postres en español (como chocotorta, helado casero, flan, etc.) usando los siguientes ingredientes: ${ingredients}. Incluye 'prepTime' (ej. "1 hora") y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos, donde cada objeto tenga 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string).`;
+                }
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "recipeName": { "type": "STRING" },
+                                    "ingredients": {
+                                        "type": "ARRAY",
+                                        "items": { "type": "STRING" }
+                                    },
+                                    "instructions": { "type": "STRING" },
+                                    "prepTime": { "type": "STRING" },
+                                    "servings": { "type": "STRING" }
+                                },
+                                "propertyOrdering": ["recipeName", "ingredients", "instructions", "prepTime", "servings"]
+                            }
+                        }
+                    }
+                };
+                const apiKey = ""; // La clave API se deja vacía; el entorno Canvas la proporcionará automáticamente
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Error en la API de Gemini:', errorData);
+                        throw new Error(`Error en la API: ${response.status} - ${errorData.error.message || 'Error desconocido'}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('Respuesta completa de Gemini:', result);
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const json = result.candidates[0].content.parts[0].text;
+                        const jsonResponse = JSON.parse(json);
+                        
+                        if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+                            let htmlContent = '';
+                            jsonResponse.forEach(recipe => {
+                                // Determinar el tipo de categoría para el icono y color de fondo
+                                const categoryTypeForIcon = activeCategory === 'comida' ? 'almuerzo' : 'postre';
+                                htmlContent += createRecipeCardHtml(recipe, categoryTypeForIcon, null); // No hay video para recetas generadas por AI
+                            });
+                            aiResponseContent.innerHTML = htmlContent;
+                            responseArea.classList.remove('hidden');
+                        } else {
+                            showError("Chef AI no pudo generar recetas con los ingredientes proporcionados. Intenta con otros ingredientes.");
+                        }
+                    } else {
+                        showError("No se pudo obtener una respuesta válida de Chef AI. Intenta reformular tu pregunta.");
+                    }
+
+                } catch (error) {
+                    console.error('Error al comunicarse con Chef AI:', error);
+                    showError(`Hubo un problema al conectar con Chef AI: ${error.message}. Asegúrate de que los ingredientes sean claros.`);
+                } finally {
+                    // Ocultar spinner principal y habilitar botón
+                    buttonText.textContent = 'Preguntar a Chef AI';
+                    loadingSpinner.classList.add('hidden');
+                    askButton.disabled = false;
+                    askButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+
+            function showError(message) {
+                errorMessage.classList.remove('hidden');
+                errorDetails.textContent = message;
+            }
+
+            function showDailyDishError(message) {
+                dailyDishError.classList.remove('hidden');
+                dailyDishErrorDetails.textContent = message;
+            }
+
+            function showCategoryError(errorElement, errorDetailsElement, message) {
+                errorElement.classList.remove('hidden');
+                errorDetailsElement.textContent = message;
+            }
+        });
+    </script>
+</body>
+</html>
