@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Flaco Chef: Tu Asistente de Cocina</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Font Awesome para iconos (versión actualizada y corregida) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
         tailwind.config = {
             theme: {
@@ -52,7 +52,6 @@
             border-radius: 0.5rem; /* rounded-md */
             transition: all 0.3s ease;
             cursor: pointer;
-            border: 2px solid transparent;
             color: #F7FAFC; /* chef-white */
         }
         .main-tab-button.active {
@@ -229,12 +228,12 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Sombra ligera para el título */
         }
         #dailyDishContent .recipe-name-title { /* Reutiliza el estilo del nombre de receta */
-            color: #4A7B7A; /* chef-dark-teal */
+            color: '#4A7B7A'; /* chef-dark-teal */
             margin-top: 1rem;
             margin-bottom: 0.5rem;
         }
         #dailyDishContent .recipe-type-label { /* Reutiliza el estilo de etiqueta */
-            color: #66A5A3; /* chef-light-teal */
+            color: '#66A5A3'; /* chef-light-teal */
             margin-bottom: 0.5rem;
         }
         #dailyDishContent .recipe-time-servings {
@@ -243,13 +242,13 @@
             margin-bottom: 1rem;
         }
         #dailyDishContent .recipe-section-title {
-            color: #4A5568; /* dark-gray */
-            border-bottom-color: #CBD5E0;
+            color: '#4A5568'; /* dark-gray */
+            border-bottom-color: '#CBD5E0';
         }
         #dailyDishContent ul,
         #dailyDishContent .instruction-steps {
             text-align: left;
-            color: #4A5568; /* dark-gray */
+            color: '#4A5568'; /* dark-gray */
         }
         #dailyDishContent .daily-dish-image {
             width: 100%;
@@ -306,7 +305,10 @@
 
     <nav class="bg-chef-red p-4 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="#" id="homeNavButton" class="text-chef-white text-2xl font-bold rounded-md p-2 hover:bg-red-700 transition-colors">El Flaco Chef</a>
+            <a href="#" id="homeNavButton" class="text-chef-white text-2xl font-bold rounded-md p-2 hover:bg-red-700 transition-colors flex items-center">
+                <i class="fas fa-hat-chef text-3xl mr-2"></i> <!-- Icono de gorro de chef de Font Awesome -->
+                El Flaco Chef
+            </a>
             <div class="space-x-4 flex items-center"> <!-- Added flex and items-center for alignment -->
                 <!-- Botón de WhatsApp -->
                 <a href="https://wa.me/5493415028812" target="_blank" class="text-chef-white text-2xl p-2 rounded-md hover:bg-green-600 transition-colors" aria-label="WhatsApp">
@@ -403,7 +405,7 @@
 
             <textarea
                 id="userPrompt"
-                class="w-full p-4 border border-chef-gray rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-chef-blue resize-y min-h-[120px] text-lg"
+                class="w-full p-4 border border-chef-gray rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-chef-blue resize-y min-h-[120px] text-gray-800"
                 placeholder="Ingresa los ingredientes que tienes en tu casa para brindarte una receta de comida: "
             ></textarea>
             
@@ -434,6 +436,10 @@
     </footer>
 
     <script>
+        // ¡IMPORTANTE! La clave API debe estar aquí, fuera de cualquier función, para que sea global.
+        const apiKey = "AIzaSyADQN-10_WkYzUuZzVHuHNcqjMs8SpyvYo"; // ¡Pega tu clave API aquí!
+        console.log("Valor de apiKey al inicio del script:", apiKey); // Log para depuración
+
         document.addEventListener('DOMContentLoaded', () => {
             const userPrompt = document.getElementById('userPrompt');
             const askButton = document.getElementById('askButton');
@@ -448,7 +454,7 @@
             const tabPostre = document.getElementById('tabPostre');
 
             const homeTab = document.getElementById('homeTab');
-            const chefAITab = document.getElementById('chefAITab');
+            const chefAITab = document.getElementById('chefAITab'); 
             const homeSection = document.getElementById('homeSection');
             const chefAISection = document.getElementById('chefAISection');
             const goToChefAIButton = document.getElementById('goToChefAIButton');
@@ -491,7 +497,7 @@
             let activeCategory = 'comida'; // Categoría inicial para Chef AI
             let activeSubCategory = 'almuerzo'; // Categoría inicial para Recetas Predefinidas
 
-            // SVG Icons as Data URLs
+            // SVG Icons as Data URLs (no longer used for daily dish background)
             const foodSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(`
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bowl-food">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
@@ -511,22 +517,20 @@
                 </svg>
             `)}`;
 
-            // New SVG for Daily Dish section - Pot cooking (improved)
-            const dailyDishSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(`
-                <svg width="100%" height="100%" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" style="background-color: #D0F8D2;">
-                    <path d="M40 40 Q30 10, 160 10 Q170 40, 160 110 H40 Z" fill="#A5D6A7" stroke="#66BB6A" stroke-width="3"/>
-                    <rect x="35" y="0" width="130" height="15" rx="5" fill="#B0BEC5"/>
-                    <circle cx="30" cy="50" r="12" fill="#78909C"/>
-                    <circle cx="170" cy="50" r="12" fill="#78909C"/>
-                    <rect x="50" y="25" width="100" height="70" fill="#81C784" rx="5"/>
-                    <path d="M70 20 Q85 0, 100 20 Q115 0, 130 20" stroke="#CFD8DC" stroke-width="5" fill="none" opacity="0.7" stroke-linecap="round"/>
-                    <path d="M80 35 Q95 15, 110 35 Q125 15, 140 35" stroke="#CFD8DC" stroke-width="4" fill="none" opacity="0.6" stroke-linecap="round"/>
-                </svg>
-            `)}`;
+            // Array de URLs de imágenes para el Plato del Día
+            const dailyDishImageUrls = [
+                'https://i.imgur.com/trRDTW6.jpeg', // Primera imagen específica (direct link)
+                'https://i.imgur.com/Du2qKg3.jpeg', // Segunda imagen específica (direct link)
+                'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Comida 1 (random fallback)
+                'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1981&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Comida 2 (random fallback)
+                'https://images.unsplash.com/photo-1504674900247-087700f9cc73?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Comida 3 (random fallback)
+                'https://images.unsplash.com/photo-1512621776951-a579eddc78d0?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Comida 4 (random fallback)
+                'https://images.unsplash.com/photo-1540189549336-e6e9dc917717?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' // Comida 5 (random fallback)
+            ];
 
 
             // Helper function to generate recipe HTML
-            function createRecipeCardHtml(recipe, categoryType, videoUrl) {
+            function createRecipeCardHtml(recipe, categoryType, videoUrl, recipeIndex = -1) { // Añadir recipeIndex
                 let rawInstructions = recipe.instructions;
                 // Asegurar que cada paso numerado comience en una nueva línea
                 rawInstructions = rawInstructions.replace(/(\d+\.\s)/g, '\n$1');
@@ -542,15 +546,29 @@
                 });
 
                 let imageBackgroundStyle = '';
-                let imageContent = '';
+                let imageContent = ''; // This will be empty if using background-image
                 let labelTextColorClass = 'text-dark-gray'; // Default to dark-gray for consistency
                 let titleTextColorClass = 'text-dark-gray'; // Default to dark-gray for consistency
                 let textShadowStyle = ''; // Default no text shadow
 
                 // Specific background for "Plato del Día" generated recipes
                 if (categoryType === 'daily-dish-generated') {
-                    imageBackgroundStyle = `background-color: #D0F8D2;`; // Light green background for SVG
-                    imageContent = `<img src="${dailyDishSvgDataUrl}" alt="Kitchen elements icon" class="w-full h-full mx-auto my-auto">`; // Use the new SVG
+                    let selectedImageUrl;
+                    if (recipeIndex === 0) {
+                        selectedImageUrl = dailyDishImageUrls[0]; // Primera imagen específica
+                    } else if (recipeIndex === 1) {
+                        selectedImageUrl = dailyDishImageUrls[1]; // Segunda imagen específica
+                    } else {
+                        // Para el resto de recetas, selecciona aleatoriamente de las URLs restantes
+                        const randomIndex = Math.floor(Math.random() * (dailyDishImageUrls.length - 2)) + 2;
+                        selectedImageUrl = dailyDishImageUrls[randomIndex];
+                    }
+                    
+                    imageBackgroundStyle = `background-image: url('${selectedImageUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
+                    // Cambiar a dark-gray para mayor contraste
+                    labelTextColorClass = 'text-dark-gray'; 
+                    titleTextColorClass = 'text-dark-gray'; 
+                    textShadowStyle = 'text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);'; // Sombra más sutil para texto oscuro
                 }
                 // Apply specific image for 'almuerzo' category (predefined or AI generated)
                 else if (categoryType === 'almuerzo') { 
@@ -565,9 +583,9 @@
                 else if (categoryType === 'cena') { 
                     imageBackgroundStyle = `background-image: url('https://i.imgur.com/7zztaMd.png'); background-size: cover; background-position: center; background-repeat: no-repeat;`;
                     imageContent = ''; // No additional SVG icon needed as the image is the background
-                    labelTextColorClass = 'text-chef-white'; // Set to white for readability
-                    titleTextColorClass = 'text-chef-white'; // Set to white for readability
-                    textShadowStyle = 'text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);'; // Add shadow for readability
+                    labelTextColorClass = 'text-dark-gray'; // Changed to dark-gray for readability
+                    titleTextColorClass = 'text-dark-gray'; // Changed to dark-gray for readability
+                    textShadowStyle = ''; // Removed text shadow as it's not needed with dark text on light background
                 }
                 // Specific image for 'postre'
                 else if (categoryType === 'postre') {
@@ -624,6 +642,7 @@
 
             // Function to generate recipes for categories using AI
             async function generateCategoryRecipes(categoryId, targetContent, loadingElement, errorElement, errorDetailsElement) {
+                console.log(`[generateCategoryRecipes] Llamada para categoría: ${categoryId}`);
                 targetContent.innerHTML = ''; // Clear previous content
                 errorElement.classList.add('hidden');
 
@@ -639,8 +658,10 @@
                 } else {
                     showCategoryError(errorElement, errorDetailsElement, "Categoría no reconocida.");
                     loadingElement.classList.add('hidden');
+                    console.error(`[generateCategoryRecipes] Categoría no reconocida: ${categoryId}`);
                     return;
                 }
+                console.log(`[generateCategoryRecipes] Prompt para ${categoryId}: ${promptText}`);
 
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: promptText }] });
@@ -668,56 +689,65 @@
                         }
                     }
                 };
-                const apiKey = ""; 
+                // La clave API ahora se toma del scope superior (global)
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
+                    console.log(`[generateCategoryRecipes] Realizando fetch para ${categoryId} a: ${apiUrl}`);
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    console.log(`[generateCategoryRecipes] Respuesta de fetch recibida para ${categoryId}. Status: ${response.status}`);
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        console.error(`Error en la API de Gemini para ${categoryId}:`, errorData);
+                        console.error(`[generateCategoryRecipes] Error en la API de Gemini para ${categoryId}:`, errorData);
                         throw new Error(`Error en la API: ${response.status} - ${errorData.error.message || 'Error desconocido'}`);
                     }
 
                     const result = await response.json();
-                    console.log(`Respuesta completa de Gemini para ${categoryId}:`, result);
+                    console.log(`[generateCategoryRecipes] Respuesta completa de Gemini para ${categoryId}:`, result);
 
                     if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
                         result.candidates[0].content.parts.length > 0) {
                         const json = result.candidates[0].content.parts[0].text;
+                        console.log(`[generateCategoryRecipes] JSON recibido para ${categoryId}:`, json);
                         const jsonResponse = JSON.parse(json);
+                        console.log(`[generateCategoryRecipes] JSON parseado para ${categoryId}:`, jsonResponse);
                         
                         if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
                             let htmlContent = '';
-                            jsonResponse.forEach(recipe => {
-                                htmlContent += createRecipeCardHtml(recipe, categoryId, null); // No video for AI generated
+                            jsonResponse.forEach((recipe, index) => { // Añadir index
+                                htmlContent += createRecipeCardHtml(recipe, categoryId, null, index); // Pasar el índice
                             });
                             targetContent.innerHTML = htmlContent;
                             targetContent.classList.remove('hidden'); // Mostrar el contenido
+                            console.log(`[generateCategoryRecipes] Recetas generadas y mostradas para ${categoryId}. Contenido visible: ${targetContent.id}`);
                         } else {
                             showCategoryError(errorElement, errorDetailsElement, `Chef AI no pudo generar recetas para ${categoryId}. Intenta de nuevo.`);
+                            console.warn(`[generateCategoryRecipes] Respuesta JSON vacía o no es un array para ${categoryId}.`);
                         }
                     } else {
                         showCategoryError(errorElement, errorDetailsElement, `No se pudo obtener una respuesta válida de Chef AI para ${categoryId}.`);
+                        console.warn(`[generateCategoryRecipes] Estructura de respuesta inesperada de Gemini para ${categoryId}.`);
                     }
 
                 } catch (error) {
-                    console.error(`Error al comunicarse con Chef AI para ${categoryId}:`, error);
-                    showCategoryError(errorElement, errorDetailsElement, `Hubo un problema al cargar recetas de ${categoryId}: ${error.message}.`);
+                    console.error(`[generateCategoryRecipes] Error al comunicarse con Chef AI para ${categoryId}:`, error);
+                    showCategoryError(errorElement, errorDetailsElement, `Hubo un problema al cargar recetas de ${categoryId}: ${error.message}. Por favor, inténtalo de nuevo.`);
                 } finally {
                     loadingElement.classList.add('hidden'); // Ocultar el spinner
+                    console.log(`[generateCategoryRecipes] Spinner oculto para ${categoryId}.`);
                 }
             }
 
 
             // Función para mostrar la sección activa (Inicio, Chef AI)
             async function showSection(sectionId) {
+                console.log(`[showSection] Cambiando a la sección: ${sectionId}`);
                 homeSection.classList.add('hidden');
                 chefAISection.classList.add('hidden');
                 dailyDishSection.classList.add('hidden'); // Ocultar plato del día por defecto
@@ -740,7 +770,12 @@
                     dailyDishSection.classList.remove('hidden');
                     recipeCategoriesSection.classList.remove('hidden');
                     await generateDailyDish(); // Generar el plato del día al ir a la sección de inicio
-                    showCategoryContent(activeSubCategory); // Asegurarse de que la subcategoría activa se muestre
+                    // Asegurarse de que la subcategoría activa se muestre
+                    // Solo llamar si la sección de categorías está visible
+                    if (!recipeCategoriesSection.classList.contains('hidden')) {
+                        console.log(`[showSection] Llamando a showCategoryContent para activeSubCategory: ${activeSubCategory}`);
+                        await showCategoryContent(activeSubCategory); 
+                    }
                 } else if (sectionId === 'chefAISection') {
                     chefAISection.classList.remove('hidden');
                     chefAITab.classList.add('active');
@@ -751,6 +786,7 @@
 
             // Función para generar el "Plato del Día"
             async function generateDailyDish() {
+                console.log('[generateDailyDish] Iniciando generación del Plato del Día.');
                 dailyDishLoading.classList.remove('hidden');
                 dailyDishContent.classList.add('hidden');
                 dailyDishError.classList.add('hidden');
@@ -783,61 +819,71 @@
                         }
                     }
                 };
-                const apiKey = ""; 
+                // La clave API ahora se toma del scope superior (global)
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
+                    console.log(`[generateDailyDish] Realizando fetch a: ${apiUrl}`);
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    console.log(`[generateDailyDish] Respuesta de fetch recibida. Status: ${response.status}`);
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        console.error('Error en la API de Gemini para Plato del Día:', errorData);
+                        console.error('[generateDailyDish] Error en la API de Gemini para Plato del Día:', errorData);
                         throw new Error(`Error en la API: ${response.status} - ${errorData.error.message || 'Error desconocido'}`);
                     }
 
                     const result = await response.json();
-                    console.log('Respuesta completa de Gemini para Plato del Día:', result);
+                    console.log('[generateDailyDish] Respuesta completa de Gemini para Plato del Día:', result);
 
                     if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
                         result.candidates[0].content.parts.length > 0) {
                         const json = result.candidates[0].content.parts[0].text;
+                        console.log('[generateDailyDish] JSON recibido:', json);
                         const jsonResponse = JSON.parse(json);
+                        console.log('[generateDailyDish] JSON parseado:', jsonResponse);
                         
                         if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
                             let htmlContent = '';
-                            jsonResponse.forEach(recipe => {
-                                htmlContent += createRecipeCardHtml(recipe, 'daily-dish-generated', null); // Use new category type
+                            jsonResponse.forEach((recipe, index) => { // Añadir index
+                                htmlContent += createRecipeCardHtml(recipe, 'daily-dish-generated', null, index); // Pasar el índice
                             });
                             dailyDishContent.innerHTML = htmlContent;
                             dailyDishContent.classList.remove('hidden');
+                            console.log('[generateDailyDish] Plato del Día generado y mostrado.');
                         } else {
                             showDailyDishError("Chef AI no pudo generar un plato del día. Intenta de nuevo.");
+                            console.warn(`[generateDailyDish] Respuesta JSON vacía o no es un array para Plato del Día.`);
                         }
                     } else {
                         showDailyDishError("No se pudo obtener una respuesta válida de Chef AI para el plato del día.");
+                        console.warn(`[generateDailyDish] Estructura de respuesta inesperada de Gemini para Plato del Día.`);
                     }
 
                 } catch (error) {
-                    console.error('Error al comunicarse con Chef AI para Plato del Día:', error);
-                    showDailyDishError(`Hubo un problema al cargar el plato del día: ${error.message}.`);
+                    console.error('[generateDailyDish] Error al comunicarse con Chef AI para Plato del Día:', error);
+                    showDailyDishError(`Hubo un problema al cargar el plato del día: ${error.message}. Por favor, inténtalo de nuevo.`);
                 } finally {
                     dailyDishLoading.classList.add('hidden');
+                    console.log('[generateDailyDish] Spinner oculto para Plato del Día.');
                 }
             }
 
             // Función para mostrar el contenido de la subcategoría de recetas
             async function showCategoryContent(categoryId) {
+                console.log(`[showCategoryContent] Llamada para categoría: ${categoryId}`);
+
                 // Ocultar todos los contenidos y errores de categoría
-                // Asegurarse de que todas las secciones de contenido estén explícitamente ocultas *primero*
-                document.querySelectorAll('.category-content').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.category-content').forEach(el => {
+                    console.log(`[showCategoryContent] Ocultando: ${el.id}`);
+                    el.classList.add('hidden');
+                });
                 document.querySelectorAll('[id$="Error"]').forEach(el => el.classList.add('hidden'));
-                
-                // Ocultar todos los spinners de carga de categoría (importante para reiniciar)
                 document.querySelectorAll('[id$="Loading"]').forEach(el => el.classList.add('hidden'));
 
                 // Quitar la clase 'active' y los estilos 'bg-chef-blue' de todos los botones de categoría
@@ -881,29 +927,25 @@
                         targetError = postreError;
                         targetErrorDetails = postreErrorDetails;
                         break;
+                    default:
+                        console.error(`[showCategoryContent] Categoría desconocida: ${categoryId}`);
+                        return; // Salir si la categoría no es válida
                 }
-
-                // Asegurarse de que el contenido del objetivo esté oculto antes de mostrar el spinner
-                targetContent.classList.add('hidden'); 
-                // Mostrar el spinner de carga para la categoría seleccionada inmediatamente
+                
+                console.log(`[showCategoryContent] Seleccionado targetContent: ${targetContent.id}`);
+                targetContent.classList.add('hidden'); // Asegurarse de que esté oculto antes de mostrar el spinner
                 targetLoading.classList.remove('hidden');
+                console.log(`[showCategoryContent] Spinner visible para ${categoryId}.`);
 
-                // Establecer la pestaña de categoría activa
                 targetTab.classList.add('active');
                 targetTab.classList.remove('bg-chef-gray', 'text-gray-800');
                 targetTab.classList.add('bg-chef-blue', 'text-chef-white');
-                activeSubCategory = categoryId;
+                activeSubCategory = categoryId; // Actualizar la subcategoría activa
 
-                console.log(`[${categoryId}] Spinner should be visible now.`);
-                
-                // *** RETRASO TEMPORAL PARA PRUEBAS - ELIMINAR ESTA LÍNEA EN PRODUCCIÓN ***
-                await new Promise(resolve => setTimeout(resolve, 3000)); // Aumentado a 3 segundos para una visibilidad clara
-                // *******************************************************************
-
-                console.log(`[${categoryId}] Delay finished. Calling generateCategoryRecipes.`);
+                //await new Promise(resolve => setTimeout(resolve, 3000)); // Retraso para pruebas
 
                 await generateCategoryRecipes(categoryId, targetContent, targetLoading, targetError, targetErrorDetails);
-                console.log(`[${categoryId}] generateCategoryRecipes finished. Spinner should be hidden.`);
+                console.log(`[showCategoryContent] generateCategoryRecipes finalizado para ${categoryId}.`);
             }
 
             // Event listeners para las pestañas de navegación principal
@@ -962,9 +1004,11 @@
 
             askButton.addEventListener('click', async () => {
                 const ingredients = userPrompt.value.trim();
+                console.log('[askButton Click] Botón de Preguntar a Chef AI clickeado.');
 
                 if (!ingredients) {
                     showError("Por favor, escribe los ingredientes antes de enviar.");
+                    console.warn('[askButton Click] Ingredientes vacíos.');
                     return;
                 }
 
@@ -978,6 +1022,7 @@
                 loadingSpinner.classList.remove('hidden');
                 askButton.disabled = true;
                 askButton.classList.add('opacity-50', 'cursor-not-allowed');
+                console.log('[askButton Click] Spinner mostrado, botón deshabilitado.');
 
                 let promptText;
                 if (activeCategory === 'comida') {
@@ -985,6 +1030,7 @@
                 } else {
                     promptText = `Dame 3 o más recetas de postres en español (como chocotorta, helado casero, flan, etc.) usando los siguientes ingredientes: ${ingredients}. Incluye 'prepTime' (ej. "1 hora") y 'servings' (string, por ejemplo "4 porciones" o "2 personas"). Formatea la respuesta como un array JSON de objetos, donde cada objeto tenga 'recipeName', 'ingredients' (array de strings), 'instructions' (string), 'prepTime' (string) y 'servings' (string).`;
                 }
+                console.log('[askButton Click] Prompt generado:', promptText);
 
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: promptText }] });
@@ -1012,49 +1058,55 @@
                         }
                     }
                 };
-                const apiKey = ""; // La clave API se deja vacía; el entorno Canvas la proporcionará automáticamente
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 try {
+                    console.log('[askButton Click] Realizando fetch a la API de Gemini...');
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    console.log('[askButton Click] Respuesta de fetch recibida. Status:', response.status);
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        console.error('Error en la API de Gemini:', errorData);
+                        console.error('[askButton Click] Error en la API de Gemini:', errorData);
                         throw new Error(`Error en la API: ${response.status} - ${errorData.error.message || 'Error desconocido'}`);
                     }
 
                     const result = await response.json();
-                    console.log('Respuesta completa de Gemini:', result);
+                    console.log('[askButton Click] Respuesta completa de Gemini:', result);
 
                     if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
                         result.candidates[0].content.parts.length > 0) {
                         const json = result.candidates[0].content.parts[0].text;
+                        console.log('[askButton Click] JSON recibido de Gemini:', json);
                         const jsonResponse = JSON.parse(json);
+                        console.log('[askButton Click] JSON parseado:', jsonResponse);
                         
                         if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
                             let htmlContent = '';
-                            jsonResponse.forEach(recipe => {
+                            jsonResponse.forEach((recipe, index) => { // Añadir index
                                 // Determinar el tipo de categoría para el icono y color de fondo
                                 const categoryTypeForIcon = activeCategory === 'comida' ? 'almuerzo' : 'postre';
-                                htmlContent += createRecipeCardHtml(recipe, categoryTypeForIcon, null); // No hay video para recetas generadas por AI
+                                htmlContent += createRecipeCardHtml(recipe, categoryTypeForIcon, null, index); // Pasar el índice
                             });
                             aiResponseContent.innerHTML = htmlContent;
                             responseArea.classList.remove('hidden');
+                            console.log('[askButton Click] Recetas generadas y mostradas.');
                         } else {
                             showError("Chef AI no pudo generar recetas con los ingredientes proporcionados. Intenta con otros ingredientes.");
+                            console.warn('[askButton Click] Respuesta JSON vacía o no es un array.');
                         }
                     } else {
                         showError("No se pudo obtener una respuesta válida de Chef AI. Intenta reformular tu pregunta.");
+                        console.warn('[askButton Click] Estructura de respuesta inesperada de Gemini.');
                     }
 
                 } catch (error) {
-                    console.error('Error al comunicarse con Chef AI:', error);
+                    console.error('[askButton Click] Error al comunicarse con Chef AI:', error);
                     showError(`Hubo un problema al conectar con Chef AI: ${error.message}. Asegúrate de que los ingredientes sean claros.`);
                 } finally {
                     // Ocultar spinner principal y habilitar botón
@@ -1062,22 +1114,26 @@
                     loadingSpinner.classList.add('hidden');
                     askButton.disabled = false;
                     askButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    console.log('[askButton Click] Spinner oculto, botón habilitado.');
                 }
             });
 
             function showError(message) {
                 errorMessage.classList.remove('hidden');
                 errorDetails.textContent = message;
+                console.error('[showError] Mostrando error al usuario:', message);
             }
 
             function showDailyDishError(message) {
                 dailyDishError.classList.remove('hidden');
                 dailyDishErrorDetails.textContent = message;
+                console.error('[showDailyDishError] Mostrando error de Plato del Día:', message);
             }
 
             function showCategoryError(errorElement, errorDetailsElement, message) {
                 errorElement.classList.remove('hidden');
                 errorDetailsElement.textContent = message;
+                console.error('[showCategoryError] Mostrando error de Categoría:', message);
             }
         });
     </script>
